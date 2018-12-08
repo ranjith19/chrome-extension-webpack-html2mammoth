@@ -22,7 +22,7 @@
   "dependencies": {
     "jquery": "^3.3.1",
     "loadash": "^1.0.0",
-    "mammoth-data-library": "^0.6.3"
+    "mammoth-data-library": "^0.6.4"
   },
   "browser": {
     "http": false,

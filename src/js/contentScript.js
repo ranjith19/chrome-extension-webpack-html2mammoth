@@ -107,8 +107,10 @@ function pushTable(element){
   let data = [];
   let headers = [];
   let internalNames = {};
-  let headerRow = $($($(element)[0]).find('thead')[0]).find('tr')[0];
-  let headerCols = $(headerRow).find('th');
+  let headerRows = $($($(element)[0]).find('thead')).find('tr');
+  let lastHeader = headerRows[headerRows.length - 1];
+  let headerCols = $(lastHeader).find('th');
+
   $.each(headerCols, function(i, e){
     let headerText = $(e).text();
     let header = headerText;
@@ -133,31 +135,45 @@ function pushTable(element){
       let iname = internalNames[h];
 
       let cd = _getCellData(ce);
-      if(parseFloat(cd) == cd){
-        cd = parseFloat(cd);
-        if(types[iname] != 'TEXT'){
-          types[iname] = 'NUMERIC';
+      cd = cd.trim();
+      if(cd == ""){
+        cd = null;
+      }
+      if(cd == '""'){
+        cd  = null;
+      }
+      if(cd !== null){
+        if(isNaN(cd)){
+          types[iname] = 'TEXT';
+        }
+        else{
+          types[iname] = types[iname] || 'NUMERIC';
         }
       }
-      else{
-        types[iname] = 'TEXT';
+      if(types[iname] == 'NUMERIC' && cd !== null){
+        row[iname] = parseFloat(cd);
       }
-      row[iname] = cd;
+      else{
+          row[iname] = cd;
+      }
     });
     if(Object.keys(row).length){
         data.push(row);
     }
   });
-  console.log(headers);
+  console.log("headers ", headers);
+  // console.log("types", types);
+  console.log("rows", data);
   let metadata = [];
   $.each(headers, function(i, h){
     let iname = internalNames[h];
     metadata.push({
       display_name: h,
       internal_name: iname,
-      type: types[iname]
+      type: types[iname]||'TEXT'
     });
   });
+  console.log("metadata ", metadata);
   _addDs();
 
   function _addDs(){
@@ -165,7 +181,7 @@ function pushTable(element){
   }
 
   function _addDsCb(dsId){
-    console.log(dsId);
+    console.log("Created dataset with id", dsId);
     setTimeout(function(){
       mammoth.getDsById(dsId).then(_getDsCb);
     }, 5000);
