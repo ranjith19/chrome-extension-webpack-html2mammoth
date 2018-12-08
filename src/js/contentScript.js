@@ -88,7 +88,8 @@ function handleTable(table){
       'text-align': 'center',
       'vertical-align': 'center',
       'borer-radius': '5px',
-      'padding': '5px'
+      'padding': '5px',
+      'z-index': 100
     });
     $(oSelector).on("click", getPushHandler(id));
   }
