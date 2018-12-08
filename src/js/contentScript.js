@@ -33,6 +33,7 @@ function init(){
 
 function _setTokenAccountCb(){
   // console.log(_mammothRegistry);
+  _findAllHtmlTables();
   setInterval(_findAllHtmlTables, 5000);
   mammoth.resources.startPolling();
 }
@@ -46,26 +47,28 @@ function _findAllHtmlTables(){
 
 
 function getNewTableOverlay(id){
-  return '<div id="'+ id + '">Push to Mammoth</div>'
+  return '<div id="'+ id + '"><span>Feed Mammoth</span></div>'
 }
 
 function handleTable(table){
   if(knownTables.indexOf(table) != -1){
     return;
   }
-  knownTables.push(table);
   let tblEle = $(table);
   if(tblEle){
-    let id = ('mt_' + Math.random()).replace('.', '_');
-    _tableRegistry[id] = table;
     let headerCols = $(tblEle).find('th');
     let rowElements = $(tblEle).find('tr');
 
-    if(!(headerCols.length && rowElements.length)){
+    if(!headerCols.length){
       return;
     }
-
-    let p = $(tblEle).position();
+    if(!rowElements.length){
+      return;
+    }
+    let id = ('mt_' + Math.random()).replace('.', '_');
+    _tableRegistry[id] = table;
+    knownTables.push(table);
+    let p = $(tblEle).offset();
     let w = $(tblEle).width();
     let newOverLay = getNewTableOverlay(id);
     let oEle = $('body').append(newOverLay);
@@ -73,12 +76,19 @@ function handleTable(table){
     $(oSelector).css({
       top: p.top,
       left: p.left + w + 10,
-      boder: '1px solid',
+      boder: '1px solid yellow',
       width: 140,
-      height: 20,
-      background: 'yellow',
+      height: 30,
+      background: '#56c28c',
       position: 'absolute',
-      cursor: 'pointer'
+      cursor: 'pointer',
+      'color': '#000',
+      'background-color': '#56c28c',
+      'border-color': '#56c28c',
+      'text-align': 'center',
+      'vertical-align': 'center',
+      'borer-radius': '5px',
+      'padding': '5px'
     });
     $(oSelector).on("click", getPushHandler(id));
   }
@@ -97,17 +107,27 @@ function pushTable(element){
   let data = [];
   let headers = [];
   let internalNames = {};
-  let headerCols = $(element).find('th');
+  let headerRow = $($($(element)[0]).find('thead')[0]).find('tr')[0];
+  let headerCols = $(headerRow).find('th');
   $.each(headerCols, function(i, e){
-    let header = $(e).html();
+    let headerText = $(e).text();
+    let header = headerText;
+    let index = 2;
+    while(headers.indexOf(header) != -1){
+      header = (headerText + index);
+      index++;
+    }
     headers.push(header);
     internalNames[header] = 'header' + i;
   });
   let types = {};
-  let rowElements = $(element).find('tr');
+  let rowElements = $($($(element)[0])).find('tbody tr');
   $.each(rowElements, function(i, re){
     let row = {};
     let cellElements = $(re).find('td');
+    if(cellElements.length == 0){
+      return true;
+    }
     $.each(cellElements, function(j, ce){
       let h = headers[j];
       let iname = internalNames[h];
@@ -128,6 +148,7 @@ function pushTable(element){
         data.push(row);
     }
   });
+  console.log(headers);
   let metadata = [];
   $.each(headers, function(i, h){
     let iname = internalNames[h];
@@ -137,14 +158,6 @@ function pushTable(element){
       type: types[iname]
     });
   });
-
-  // chrome.storage.local.get('_mammothRegistry', function (items) {
-  //     _mammothRegistry = items._mammothRegistry;
-  //     if(_mammothRegistry && _mammothRegistry.token && _mammothRegistry.account && _mammothRegistry.account.id){
-  //       mammoth.setTokenAccountId(
-  //         _mammothRegistry.token, _mammothRegistry.account.id).then(_addDs);
-  //     }
-  // });
   _addDs();
 
   function _addDs(){
@@ -172,9 +185,4 @@ function pushTable(element){
 
 function _getCellData(element){
   return $(element).text();
-        // .clone()    //clone the element
-        // .children() //select all the children
-        // .remove()   //remove all the children
-        // .end()  //again go back to selected element
-        // .text();
 }
