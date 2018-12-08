@@ -3,11 +3,16 @@ import $ from "jquery";
 import _ from "lodash";
 const BASE_URL = 'https://eureka.mammoth.io';
 
+let inited = false;
 let mammoth = new Mammoth(BASE_URL + '/api/v1');
 let _mammothRegistry;
 let _tableRegistry = {};
 let knownTables = [];
+let trackingInfo = {};
+let tableLength = {};
+let trackingURL = 'https://qa.mammoth.io/api/v1/webhook/data/LW5QcnJDzfS0';
 
+_captureBrowserDetails();
 init();
 
 chrome.runtime.onMessage.addListener(
@@ -35,15 +40,17 @@ function _setTokenAccountCb(){
   // console.log(_mammothRegistry);
   _findAllHtmlTables();
   setInterval(_findAllHtmlTables, 5000);
-  mammoth.resources.startPolling();
 }
 
 function _findAllHtmlTables(){
   let tables = $('table');
-  _logData({"init": {"tables": tables.length}})
   $.each(tables, function(i, table){
     handleTable(table)
   });
+  if(!inited){
+      _logData("init", {"tables": tables.length});
+  }
+  inited = true;
 }
 
 
@@ -106,6 +113,7 @@ function getPushHandler(id){
 }
 
 function pushTable(element){
+  mammoth.resources.startPolling();
   let data = [];
   let headers = [];
   let internalNames = {};
@@ -114,7 +122,10 @@ function pushTable(element){
   let headerCols = $(lastHeader).find('th');
 
   $.each(headerCols, function(i, e){
-    let headerText = $(e).text();
+    let headerText = $(e).text().trim();
+    if(headerText.length == 0){
+      headerText = 'Header';
+    }
     let header = headerText;
     let index = 2;
     while(headers.indexOf(header) != -1){
@@ -163,10 +174,6 @@ function pushTable(element){
         data.push(row);
     }
   });
-  _logData({"headers": headers});
-  _logData({types: _.values(types)});
-  // console.log("types", types);
-  _logData(({"rows ": data.length}));
   let metadata = [];
   $.each(headers, function(i, h){
     let iname = internalNames[h];
@@ -176,22 +183,35 @@ function pushTable(element){
       type: types[iname]||'TEXT'
     });
   });
-  _logData(({"columns ": metadata.length}));
+  let tableDetails = {
+    "headers": headers,
+    "types": _.values(types),
+    "rows ": data.length,
+    "columns ": metadata.length,
+    'url': window.location.href,
+    "selector": $(element).selector
+  };
+  _logData("click", tableDetails);
   _addDs();
 
   function _addDs(){
-    mammoth.createDatasetFromJson("HTML table", metadata, data).then(_addDsCb);
+    let pageTitle = document.title;
+    let dsName = pageTitle.replace(/[^\w\s]/gi, '');
+    if(parseInt(dsName[0]) == dsName[0]){
+      dsName = "Dataset " + dsName;
+    }
+    dsName = dsName.substring(0, 50);
+    mammoth.createDatasetFromJson(dsName, metadata, data).then(_addDsCb);
   }
 
   function _addDsCb(dsId){
-    console.log("Created dataset with id", dsId);
-    _logData({"ds": "success"});
     setTimeout(function(){
       mammoth.getDsById(dsId).then(_getDsCb, _failureCb);
     }, 5000);
   }
   function _failureCb(){
-    _logData({"ds": "failure"});
+    _logData("failure", tableDetails);
+    mammoth.resources.stopPolling();
   }
 
   function _getDsCb(ds){
@@ -200,11 +220,12 @@ function pushTable(element){
 
   function _listWsCb(list){
     if(list.length){
-      _logData({"openWS": 'success'});
-        window.open(BASE_URL + '#workspaces/' + list[0].id);
+      _logData("success", tableDetails);
+      window.open(BASE_URL + '#workspaces/' + list[0].id);
+      mammoth.resources.stopPolling();
     }
     else{
-      _logData({"openWS": 'failure'});
+      _failureCb();
     }
   }
 }
@@ -214,7 +235,99 @@ function _getCellData(element){
 }
 
 
-function _logData(data){
-  $.post('https://qa.mammoth.io/api/v1/webhook/data/DUUcQuKl8WFt', data);
+
+function _captureBrowserDetails(){
+  var nVer = navigator.appVersion;
+  var nAgt = navigator.userAgent;
+  var browserName  = navigator.appName;
+  var fullVersion  = ''+parseFloat(navigator.appVersion);
+  var majorVersion = parseInt(navigator.appVersion,10);
+  var nameOffset,verOffset,ix;
+
+  // In Opera, the true version is after "Opera" or after "Version"
+  if ((verOffset=nAgt.indexOf("Opera"))!=-1) {
+   browserName = "Opera";
+   fullVersion = nAgt.substring(verOffset+6);
+   if ((verOffset=nAgt.indexOf("Version"))!=-1)
+     fullVersion = nAgt.substring(verOffset+8);
+  }
+  // In MSIE, the true version is after "MSIE" in userAgent
+  else if ((verOffset=nAgt.indexOf("MSIE"))!=-1) {
+   browserName = "Microsoft Internet Explorer";
+   fullVersion = nAgt.substring(verOffset+5);
+  }
+  // In Chrome, the true version is after "Chrome"
+  else if ((verOffset=nAgt.indexOf("Chrome"))!=-1) {
+   browserName = "Chrome";
+   fullVersion = nAgt.substring(verOffset+7);
+  }
+  // In Safari, the true version is after "Safari" or after "Version"
+  else if ((verOffset=nAgt.indexOf("Safari"))!=-1) {
+   browserName = "Safari";
+   fullVersion = nAgt.substring(verOffset+7);
+   if ((verOffset=nAgt.indexOf("Version"))!=-1)
+     fullVersion = nAgt.substring(verOffset+8);
+  }
+  // In Firefox, the true version is after "Firefox"
+  else if ((verOffset=nAgt.indexOf("Firefox"))!=-1) {
+   browserName = "Firefox";
+   fullVersion = nAgt.substring(verOffset+8);
+  }
+  // In most other browsers, "name/version" is at the end of userAgent
+  else if ( (nameOffset=nAgt.lastIndexOf(' ')+1) <
+            (verOffset=nAgt.lastIndexOf('/')) )
+  {
+   browserName = nAgt.substring(nameOffset,verOffset);
+   fullVersion = nAgt.substring(verOffset+1);
+   if (browserName.toLowerCase()==browserName.toUpperCase()) {
+    browserName = navigator.appName;
+   }
+  }
+  // trim the fullVersion string at semicolon/space if present
+  if ((ix=fullVersion.indexOf(";"))!=-1)
+     fullVersion=fullVersion.substring(0,ix);
+  if ((ix=fullVersion.indexOf(" "))!=-1)
+     fullVersion=fullVersion.substring(0,ix);
+
+  majorVersion = parseInt(''+fullVersion,10);
+  if (isNaN(majorVersion)) {
+   fullVersion  = ''+parseFloat(navigator.appVersion);
+   majorVersion = parseInt(navigator.appVersion,10);
+  }
+
+
+  var OSName="Unknown OS";
+  if (navigator.appVersion.indexOf("Win")!=-1) OSName="Windows";
+  if (navigator.appVersion.indexOf("Mac")!=-1) OSName="MacOS";
+  if (navigator.appVersion.indexOf("X11")!=-1) OSName="UNIX";
+  if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
+
+
+  trackingInfo = {
+    'Browser name':browserName,
+    'Full version':fullVersion,
+    'Major version':majorVersion,
+    'navigator appName':navigator.appName,
+    'navigator userAgent':navigator.userAgent,
+    'OSName': OSName,
+    'initial_url': window.location.href
+  }
+}
+
+
+
+function _logData(event, properties){
+  let data = {
+    event: event,
+    properties: properties,
+    tracking: trackingInfo
+  }
+  $.ajax({
+    url: trackingURL,
+    type: 'POST',
+    dataType: "json",
+    contentType: "application/json; charset=utf-8",
+    data: JSON.stringify(data)
+  });
   console.log(data);
 }
