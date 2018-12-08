@@ -1,4 +1,3 @@
-based on https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate
 
 # HTML to Mammoth
 
@@ -88,3 +87,6 @@ Long term: (this might not be possible because this means script injection. I do
 2. On your PR make sure that you are following the current codebase style.
 3. Your PR must be single purpose. Resolve just one problem on your PR.
 4. Make sure to commit in the same style that we are committing until now on the project.
+
+
+Thanks to for this template: https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate
