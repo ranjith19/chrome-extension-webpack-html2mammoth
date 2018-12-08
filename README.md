@@ -67,3 +67,23 @@ ApiCall({ key: secrets.key });
 2. On your PR make sure that you are following the current codebase style.
 3. Your PR must be single purpose. Resolve just one problem on your PR.
 4. Make sure to commit in the same style that we are committing until now on the project.
+
+
+# Road Map
+
+
+The purpose of this extension is to democratise the html parsing/scraping using Mammoth. I need help with design and implementation of these.
+
+Short term:
+
+1. Allow for domain-wise parsers if the domain has a different way of implementing. Match domains through regex.
+2. Allow for jQuery selectors as a second level of custom parser.
+3. Not only tables, any html can be parsed into json. Allow for this in custom css parsers.
+3. Open it up to devs to contribute.
+
+
+Long term: (this might not be possible because this means script injection. I do not know, just documenting thoughts without research)
+
+1. User should be able to define their own custom script to parse the html. Like StyleBot (http://stylebot.me/) for data parsing.
+2. User should be able to save their script.
+3. User should be able to download a script from someone else.
