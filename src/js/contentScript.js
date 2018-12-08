@@ -33,7 +33,7 @@ function init(){
 
 function _setTokenAccountCb(){
   // console.log(_mammothRegistry);
-  // setInterval(_findAllHtmlTables, 10000);
+  setInterval(_findAllHtmlTables, 10000);
   mammoth.resources.startPolling();
   _findAllHtmlTables();
 }
@@ -142,7 +142,7 @@ function pushTable(element){
   _addDs();
 
   function _addDs(){
-    mammoth.createDatasetFromJson("dataset", metadata, data).then(_addDsCb);
+    mammoth.createDatasetFromJson("HTML table", metadata, data).then(_addDsCb);
   }
 
   function _addDsCb(dsId){
@@ -165,10 +165,10 @@ function pushTable(element){
 }
 
 function _getCellData(element){
-  return $(element)
-        .clone()    //clone the element
-        .children() //select all the children
-        .remove()   //remove all the children
-        .end()  //again go back to selected element
-        .text();
+  return $(element).text();
+        // .clone()    //clone the element
+        // .children() //select all the children
+        // .remove()   //remove all the children
+        // .end()  //again go back to selected element
+        // .text();
 }
