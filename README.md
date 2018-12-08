@@ -113,7 +113,7 @@ Questions:
 
 ## Contributing
 
-1. **Please!! Do not create a pull request without an issue before discussing the problem.**
+1. **Please!! Create PR a if you can instead of creating an issue.**
 2. On your PR make sure that you are following the current codebase style.
 3. Your PR must be single purpose. Resolve just one problem on your PR.
 4. Make sure to commit in the same style that we are committing until now on the project.
