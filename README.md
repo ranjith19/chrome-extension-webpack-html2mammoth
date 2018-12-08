@@ -61,13 +61,6 @@ ApiCall({ key: secrets.key });
 ```
 :point_right: The files with name `secrets.*.js` already are ignored on the repository.
 
-## Contributing
-
-1. **Please!! Do not create a pull request without an issue before discussing the problem.**
-2. On your PR make sure that you are following the current codebase style.
-3. Your PR must be single purpose. Resolve just one problem on your PR.
-4. Make sure to commit in the same style that we are committing until now on the project.
-
 
 # Road Map
 
@@ -87,3 +80,11 @@ Long term: (this might not be possible because this means script injection. I do
 1. User should be able to define their own custom script to parse the html. Like StyleBot (http://stylebot.me/) for data parsing.
 2. User should be able to save their script.
 3. User should be able to download a script from someone else.
+
+
+## Contributing
+
+1. **Please!! Do not create a pull request without an issue before discussing the problem.**
+2. On your PR make sure that you are following the current codebase style.
+3. Your PR must be single purpose. Resolve just one problem on your PR.
+4. Make sure to commit in the same style that we are committing until now on the project.
