@@ -33,6 +33,13 @@ You can run the dev mode on other port if you want. Just specify the env var `po
 $ PORT=6002 npm run start
 ```
 
+## useful aliases
+
+```
+h2m='cd <path to this folder>'
+h2m_run='h2m; npm run start'
+```
+
 ## Packing
 After the development of your extension run the command
 
@@ -89,6 +96,7 @@ Questions:
 3. Typescript or vanilla JS?
 4. Define coding standards and follow them?
 5. CI/CD?
+
 
 
 ## Contributing
