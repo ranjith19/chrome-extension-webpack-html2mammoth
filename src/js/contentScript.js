@@ -1,8 +1,9 @@
-console.log("hello world");
 import Mammoth from 'mammoth-data-library';
 import $ from "jquery";
 
-let mammoth = new Mammoth('https://eureka.mammoth.io/api/v1');
+const BASE_URL = 'https://eureka.mammoth.io';
+
+let mammoth = new Mammoth(BASE_URL + '/api/v1');
 let _mammothRegistry;
 let _tableRegistry = {};
 let knownTables = [];
@@ -115,8 +116,18 @@ function pushTable(element){
       type: types[iname]
     });
   });
-  console.log(data, metadata);
-  mammoth.createDatasetFromJson("dataset", metadata, data).then(_addDsCb);
+
+  chrome.storage.local.get('_mammothRegistry', function (items) {
+      _mammothRegistry = items._mammothRegistry;
+      if(_mammothRegistry && _mammothRegistry.token && _mammothRegistry.account && _mammothRegistry.account.id){
+        mammoth.setTokenAccountId(
+          _mammothRegistry.token, _mammothRegistry.account.id).then(_postSetAcc);
+      }
+  });
+
+  function _postSetAcc(){
+    mammoth.createDatasetFromJson("dataset", metadata, data).then(_addDsCb);
+  }
 
   function _addDsCb(dsId){
     console.log(dsId);
@@ -126,7 +137,14 @@ function pushTable(element){
   }
 
   function _getDsCb(ds){
-    console.log(ds);
+    ds.listWorkspaces().then(_listWsCb);
+  }
+
+  function _listWsCb(list){
+    if(list.length){
+        window.open(BASE_URL + '#workspaces/' + list[0].id);
+    }
+
   }
 }
 
