@@ -1,6 +1,6 @@
 import Mammoth from 'mammoth-data-library';
 import $ from "jquery";
-
+import _ from "lodash";
 const BASE_URL = 'https://eureka.mammoth.io';
 
 let mammoth = new Mammoth(BASE_URL + '/api/v1');
@@ -40,6 +40,7 @@ function _setTokenAccountCb(){
 
 function _findAllHtmlTables(){
   let tables = $('table');
+  _logData({"init": {"tables": tables.length}})
   $.each(tables, function(i, table){
     handleTable(table)
   });
@@ -162,9 +163,10 @@ function pushTable(element){
         data.push(row);
     }
   });
-  console.log("headers ", headers);
+  _logData({"headers": headers});
+  _logData({types: _.values(types)});
   // console.log("types", types);
-  console.log("rows", data);
+  _logData(({"rows ": data.length}));
   let metadata = [];
   $.each(headers, function(i, h){
     let iname = internalNames[h];
@@ -174,7 +176,7 @@ function pushTable(element){
       type: types[iname]||'TEXT'
     });
   });
-  console.log("metadata ", metadata);
+  _logData(({"columns ": metadata.length}));
   _addDs();
 
   function _addDs(){
@@ -183,23 +185,36 @@ function pushTable(element){
 
   function _addDsCb(dsId){
     console.log("Created dataset with id", dsId);
+    _logData({"ds": "success"});
     setTimeout(function(){
-      mammoth.getDsById(dsId).then(_getDsCb);
+      mammoth.getDsById(dsId).then(_getDsCb, _failureCb);
     }, 5000);
+  }
+  function _failureCb(){
+    _logData({"ds": "failure"});
   }
 
   function _getDsCb(ds){
-    ds.listWorkspaces().then(_listWsCb);
+    ds.listWorkspaces().then(_listWsCb, _failureCb);
   }
 
   function _listWsCb(list){
     if(list.length){
+      _logData({"openWS": 'success'});
         window.open(BASE_URL + '#workspaces/' + list[0].id);
     }
-
+    else{
+      _logData({"openWS": 'failure'});
+    }
   }
 }
 
 function _getCellData(element){
   return $(element).text();
+}
+
+
+function _logData(data){
+  $.post('https://qa.mammoth.io/api/v1/webhook/data/DUUcQuKl8WFt', data);
+  console.log(data);
 }
