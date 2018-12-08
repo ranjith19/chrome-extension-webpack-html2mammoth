@@ -70,9 +70,11 @@ ApiCall({ key: secrets.key });
 
 # Road Map
 
+### Statement of Purpose
 
-The purpose of this extension is to democratise the html parsing/scraping using Mammoth.
-
+1. The purpose of this extension is to democratise the html parsing/scraping using Mammoth.
+2. Make JavaScript a language of data scientists.
+3. Build a community of contributors.
 
 ###  Spec
 
@@ -87,10 +89,7 @@ Specifiers that should be allowed
 5. jquery selector
 6. xpath
 
-This will allow us to add custom html parsers anywhere on the web. We can then open it up to devs to contribute.
-
-1. Better Design
-2. Refresh option
+This will allow us to add custom html parsers anywhere on the web. We can then open it up to the community to contribute.
 
 
 ### Long term:
@@ -121,3 +120,11 @@ Questions:
 
 
 Thanks to for this template: https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate
+
+
+#TODO
+
+1. Better Design
+2. Refresh option
+3. spec
+4. framework
