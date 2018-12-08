@@ -69,7 +69,7 @@ The purpose of this extension is to democratise the html parsing/scraping using 
 Short term:
 
 1. Allow for domain-wise parsers if the domain has a different way of implementing. Match domains through regex.
-2. Allow for jQuery selectors as a second level of custom parser.
+2. Allow for jQuery selectors as a second level specifier for custom parser.
 3. Not only tables, any html can be parsed into json. Allow for this in custom css parsers.
 3. Open it up to devs to contribute.
 
@@ -79,6 +79,14 @@ Long term: (this might not be possible because this means script injection. I do
 1. User should be able to define their own custom script to parse the html. Like StyleBot (http://stylebot.me/) for data parsing.
 2. User should be able to save their script.
 3. User should be able to download a script from someone else.
+
+## Technology
+
+Questions:
+
+1. Decide if we need to go with react or just jquery etc are sufficient
+2. Design, add tests.
+3. Typescript or vanilla JS?
 
 
 ## Contributing
