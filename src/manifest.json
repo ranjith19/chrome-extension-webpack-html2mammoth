@@ -1,5 +1,5 @@
 {
-  "name": "Chrome Extension H2M",
+  "name": "HTML tables to Mammoth",
   "options_page": "options.html",
   "background": {
     "page": "background.html"
@@ -21,7 +21,12 @@
       "matches": ["<all_urls>"],
       "js": ["mamothContentScript.bundle.js"],
       "exclude_matches": [
-            "https://eureka.mammoth.io/*"
+            "https://saturn.mammoth.io/",
+            "https://newton.mammoth.io/",
+            "https://earlybird.mammoth.io/",
+            "https://eureka.mammoth.io/",
+            "https://qa.mammoth.io/",
+            "https://app.mammoth.io/"
         ]
     }
   ],

@@ -33,9 +33,8 @@ function init(){
 
 function _setTokenAccountCb(){
   // console.log(_mammothRegistry);
-  setInterval(_findAllHtmlTables, 10000);
+  setInterval(_findAllHtmlTables, 5000);
   mammoth.resources.startPolling();
-  _findAllHtmlTables();
 }
 
 function _findAllHtmlTables(){
@@ -59,6 +58,13 @@ function handleTable(table){
   if(tblEle){
     let id = ('mt_' + Math.random()).replace('.', '_');
     _tableRegistry[id] = table;
+    let headerCols = $(tblEle).find('th');
+    let rowElements = $(tblEle).find('tr');
+
+    if(!(headerCols.length && rowElements.length)){
+      return;
+    }
+
     let p = $(tblEle).position();
     let w = $(tblEle).width();
     let newOverLay = getNewTableOverlay(id);
