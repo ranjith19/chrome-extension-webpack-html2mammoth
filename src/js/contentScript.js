@@ -8,14 +8,28 @@ let _mammothRegistry;
 let _tableRegistry = {};
 let knownTables = [];
 
-chrome.storage.local.get('_mammothRegistry', function (items) {
-    _mammothRegistry = items._mammothRegistry;
-    if(_mammothRegistry && _mammothRegistry.token && _mammothRegistry.account && _mammothRegistry.account.id){
-      mammoth.setTokenAccountId(
-        _mammothRegistry.token, _mammothRegistry.account.id).then(_setTokenAccountCb);
-    }
-});
+init();
 
+chrome.runtime.onMessage.addListener(
+    function(message, sender, sendResponse) {
+        switch(message.type) {
+            case "status":
+                sendResponse(null);
+                init();
+            break;
+        }
+    }
+);
+
+function init(){
+  chrome.storage.local.get('_mammothRegistry', function (items) {
+      _mammothRegistry = items._mammothRegistry;
+      if(_mammothRegistry && _mammothRegistry.token && _mammothRegistry.account && _mammothRegistry.account.id){
+        mammoth.setTokenAccountId(
+          _mammothRegistry.token, _mammothRegistry.account.id).then(_setTokenAccountCb);
+      }
+  });
+}
 
 function _setTokenAccountCb(){
   // console.log(_mammothRegistry);
@@ -68,6 +82,7 @@ function handleTable(table){
 function getPushHandler(id){
   return function(){
     let table = _tableRegistry[id];
+    $("#" + id).remove();
     pushTable(table);
   }
 }
@@ -117,15 +132,16 @@ function pushTable(element){
     });
   });
 
-  chrome.storage.local.get('_mammothRegistry', function (items) {
-      _mammothRegistry = items._mammothRegistry;
-      if(_mammothRegistry && _mammothRegistry.token && _mammothRegistry.account && _mammothRegistry.account.id){
-        mammoth.setTokenAccountId(
-          _mammothRegistry.token, _mammothRegistry.account.id).then(_postSetAcc);
-      }
-  });
+  // chrome.storage.local.get('_mammothRegistry', function (items) {
+  //     _mammothRegistry = items._mammothRegistry;
+  //     if(_mammothRegistry && _mammothRegistry.token && _mammothRegistry.account && _mammothRegistry.account.id){
+  //       mammoth.setTokenAccountId(
+  //         _mammothRegistry.token, _mammothRegistry.account.id).then(_addDs);
+  //     }
+  // });
+  _addDs();
 
-  function _postSetAcc(){
+  function _addDs(){
     mammoth.createDatasetFromJson("dataset", metadata, data).then(_addDsCb);
   }
 

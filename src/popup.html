@@ -5,14 +5,19 @@
   <title></title>
 </head>
 <body>
-  <div>
+  <div class="login">
+    <h3>Login to Mammoth</h3>
+    <label>email: <input id="email" required type="email"></label>
+    <label>password: <input id="password" required type="password" min-length="10"></label>
+    <button id="loginButton">login</button>
+  </div>
 
-  <div>
   <div class="landing">
-    You are logged into Mammoth!
+    <h3>You are logged in to Mammoth</h3>
+    <button id="logout">logout</button>
     <p>Accounts:</p>
-    <div class="accounts" id="accountList">
-    </div>
-  <div>
+    <div class="accounts" id="accountList"></div>
+  </div>
+
 </body>
 </html>
