@@ -71,23 +71,36 @@ ApiCall({ key: secrets.key });
 # Road Map
 
 
-The purpose of this extension is to democratise the html parsing/scraping using Mammoth. I need help with design and implementation of these.
-
-Short term:
-
-1. Allow for domain-wise parsers if the domain has a different way of implementing. Match domains through regex.
-2. Allow for jQuery selectors as a second level specifier for custom parser.
-3. Not only tables, any html can be parsed into json. Allow for this in custom css parsers.
-3. Open it up to devs to contribute.
+The purpose of this extension is to democratise the html parsing/scraping using Mammoth.
 
 
-Long term: (this might not be possible because this means script injection. I do not know, just documenting thoughts without research)
+###  Spec
 
-1. User should be able to define their own custom script to parse the html. Like StyleBot (http://stylebot.me/) for data parsing.
+Flexible spec to specify custom html parsers.
+
+Specifiers that should be allowed
+
+1. Domain
+2. Sub domain
+3. url path
+4. other url parts
+5. jquery selector
+6. xpath
+
+This will allow us to add custom html parsers anywhere on the web. We can then open it up to devs to contribute.
+
+1. Better Design
+2. Refresh option
+
+
+### Long term:
+
+1. User should be able to define their own custom script to parse the html. Like StyleBot (http://stylebot.me/) for data parsing. This  might not be possible because this means script injection. I do not know, just documenting thoughts without research
 2. User should be able to save their script.
 3. User should be able to download a script from someone else.
 
-## Technology
+
+### Other Technology Considerations
 
 Questions:
 
