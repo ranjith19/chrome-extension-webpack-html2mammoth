@@ -12,12 +12,29 @@ let trackingInfo = {};
 let tableLength = {};
 let trackingURL = 'https://qa.mammoth.io/api/v1/webhook/data/LW5QcnJDzfS0';
 
+/*
+Working spec. This has not been implemented yet.
+
+Spec:
+{
+  'selector': 'table',
+  'handler': handleTable,
+  'element': domElement,
+  'trackProperties': trackProperties,
+  'clickHanker': clickHandler
+}
+
+*/
 
 let selectorHandlerMap = {
   'table': handleTable,
   "a[href*='.csv']": handleSupportedFileLinks,
   "a[href*='.json']": handleSupportedFileLinks,
-  "a[href*='.xlsx']": handleSupportedFileLinks
+  "a[href*='.xlsx']": handleSupportedFileLinks,
+  "a[href*='.xls']": handleSupportedFileLinks,
+  "a[href*='.zip']": handleSupportedFileLinks,
+  "ul": handleLists,
+  "ol": handleLists
 }
 
 _captureBrowserDetails();
@@ -68,8 +85,9 @@ function _findAllHtmlElements(){
 }
 
 
-function getNewElementOverlay(id){
-  return '<div class="html-to-mammoth-push-button-2" id="'+ id + '"><span></span></div>'
+function getNewElementOverlay(properties){
+  let template = '<div class="html-to-mammoth-push-button-2" id="${ id }" data-after-content="${ content }"></div>';
+  return _.template(template)(properties);
 }
 
 function handleSupportedFileLinks(aLink){
@@ -78,12 +96,15 @@ function handleSupportedFileLinks(aLink){
   }
   let aEle = $(aLink);
   if(aEle){
-    let id = ('a_ele_' + Math.random()).replace('.', '_');
+    let id = ('anchor_' + Math.random()).replace('.', '_');
     _elementRegistry[id] = aEle;
     knownElements.push(aLink);
     let p = $(aEle).offset();
     let w = $(aEle).width();
-    let newOverLay = getNewElementOverlay(id);
+    let newOverLay = getNewElementOverlay({
+      id: id,
+      content: 'Push this file to Mammoth'
+    });
     let oEle = $('body').append(newOverLay);
     let oSelector = '#' + id;
     $(oSelector).css({
@@ -92,6 +113,40 @@ function handleSupportedFileLinks(aLink){
       'z-index': 100 + knownElements.length
     });
     $(oSelector).on("click", getFilePushHandler(id));
+  }
+}
+
+function handleLists(listEle){
+  if(knownElements.indexOf(listEle) != -1){
+    return;
+  }
+  let ulEle = $(listEle);
+  if(ulEle){
+    let id = ('ul_' + Math.random()).replace('.', '_');
+    _elementRegistry[id] = ulEle;
+    knownElements.push(listEle);
+    let p = $(listEle).offset();
+    let w = $(listEle).width();
+    let newOverLay = getNewElementOverlay({
+      id: id,
+      content: 'Push this list to Mammoth'
+    });
+    let oEle = $('body').append(newOverLay);
+    let oSelector = '#' + id;
+    $(oSelector).css({
+      top: p.top,
+      left: p.left + w,
+      'z-index': 100 + knownElements.length
+    });
+    $(oSelector).on("click", getListPushHandler(id));
+  }
+}
+
+function getListPushHandler(id){
+  return function(){
+    let ele = _elementRegistry[id];
+    $("#" + id).remove();
+    pushListToMammoth(ele);
   }
 }
 
@@ -104,6 +159,8 @@ function getFilePushHandler(id){
 }
 
 
+
+
 function handleTable(table){
   if(knownElements.indexOf(table) != -1){
     return;
@@ -113,7 +170,7 @@ function handleTable(table){
     let headerCols = $(tblEle).find('th');
     let rowElements = $(tblEle).find('tbody');
 
-    if(!(headerCols.length + rowElements.length)){
+    if(!(rowElements.length)){
       return;
     }
 
@@ -122,12 +179,16 @@ function handleTable(table){
     knownElements.push(table);
     let p = $(tblEle).offset();
     let w = $(tblEle).width();
-    let newOverLay = getNewElementOverlay(id);
+    let content = 'Push ~' + rowElements.length + ' rows to Mammoth';
+    let newOverLay = getNewElementOverlay({
+      id: id,
+      content: content
+    });
     let oEle = $('body').append(newOverLay);
     let oSelector = '#' + id;
     $(oSelector).css({
       top: p.top,
-      left: p.left + w - 40,
+      left: p.left + w - 60,
       'z-index': 100 + knownElements.length
     });
     $(oSelector).on("click", getTablePushHandler(id));
@@ -154,7 +215,6 @@ function pushFileLink(aEle){
 
 
 function pushTable(element){
-  mammoth.resources.startPolling();
   let data = [];
   let headers = [];
   let internalNames = {};
@@ -235,23 +295,27 @@ function pushTable(element){
     });
   });
   let tableDetails = {
-    "headers": headers,
-    "types": _.values(types),
     "rows ": data.length,
     "columns ": metadata.length,
     'url': window.location.href,
-    "selector": $(element).selector,
+    "element": 'table',
     "runId": Math.random()
   };
   _logData("click", tableDetails);
   if(data.length){
-      _addDs();
+      addDataset(metadata, data, tableDetails);
   }
+}
 
+function addDataset(metadata, data, details){
+  if(!details){
+    details = {};
+  }
+  _addDs();
+  mammoth.resources.startPolling();
 
   function _addDs(){
-    let pageTitle = document.title;
-    let dsName = pageTitle.replace(/[^\w\s]/gi, '');
+    let dsName = getCleanPageTitle();
     if(parseInt(dsName[0]) == dsName[0]){
       dsName = "Dataset " + dsName;
     }
@@ -264,8 +328,9 @@ function pushTable(element){
       mammoth.getDsById(dsId).then(_getDsCb, _failureCb);
     }, 5000);
   }
+
   function _failureCb(){
-    _logData("failure", tableDetails);
+    _logData("failure", details);
     mammoth.resources.stopPolling();
   }
 
@@ -275,7 +340,7 @@ function pushTable(element){
 
   function _listWsCb(list){
     if(list.length){
-      _logData("success", tableDetails);
+      _logData("success", details);
       window.open(BASE_URL + '/#workspaces/' + list[0].id);
       mammoth.resources.stopPolling();
     }
@@ -283,6 +348,32 @@ function pushTable(element){
       _failureCb();
     }
   }
+}
+
+function getCleanPageTitle() {
+  let pageTitle = document.title;
+  return pageTitle.replace(/[^\w\s]/gi, '');
+}
+
+function pushListToMammoth(listEle){
+  let metadata = [{
+    'internal_name': 'item',
+    'display_name': "Items",
+    'type': 'TEXT'
+  }];
+  let data = [];
+  let items = $(listEle).find('li');
+  $.each(items, function(i, item){
+    data.push({item: $(item).text().trim()})
+  })
+  console.log(data, metadata);
+  addDataset(metadata, data, {
+    "rows ": data.length,
+    "columns ": metadata.length,
+    'url': window.location.href,
+    "element": 'list',
+    "runId": Math.random()
+  })
 }
 
 function _getCellData(element){
@@ -420,11 +511,8 @@ function  addSheetAndRules(){
   sheet.insertRule(
     `.html-to-mammoth-push-button-2 {
       	background-color: rgb(86, 194, 140);
-      	border-bottom-left-radius: 3px;
-      	border-bottom-right-radius: 3px;
-      	border-top-left-radius: 3px;
-      	border-top-right-radius: 3px;
-      	color: rgb(255, 255, 255);
+      	border-radius: 3px;
+      	color: #fff;
       	cursor: pointer;
       	display: inline-block;
       	font-family: Arial!important;
@@ -434,12 +522,10 @@ function  addSheetAndRules(){
       	list-style-image: none;
       	list-style-position: outside;
       	list-style-type: none;
-      	padding-bottom: 2px;
-      	padding-left: 4px;
-      	padding-right: 4px;
-      	padding-top: 2px;
+      	padding: 2px;
+        padding-right: 5px;
         position: absolute;
-      	text-align: left;
+      	text-align: center;
       	text-decoration-color: rgb(255, 255, 255);
       	text-decoration-line: none;
       	text-decoration-style: solid;
@@ -447,8 +533,8 @@ function  addSheetAndRules(){
       	text-size-adjust: 100%;
       	vertical-align: baseline;
       	white-space: nowrap;
-        width: 30px;
-        height: 20px;
+        width: auto;
+        height: auto;
         z-index: 100;
     }`
   );
@@ -456,9 +542,7 @@ function  addSheetAndRules(){
     .html-to-mammoth-push-button-2:hover {
       z-index: 10000 !important;
       border: 1px solid black;
-      width: 100px;
-      font-size: 10px;
-      font-weight: 500;
+      padding-right: 2px;
     }
   `)
   sheet.insertRule(`
@@ -468,7 +552,7 @@ function  addSheetAndRules(){
   `)
   sheet.insertRule(`
     .html-to-mammoth-push-button-2:hover:after {
-      content: \"Feed Mammoth\";
+      content: attr(data-after-content);
     }
   `)
 }
