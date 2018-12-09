@@ -21,7 +21,8 @@ Spec:
   'handler': handleTable,
   'element': domElement,
   'trackProperties': trackProperties,
-  'clickHanker': clickHandler
+  'clickHanker': clickHandler,
+  'postioner': positioner
 }
 
 */
@@ -103,7 +104,7 @@ function handleSupportedFileLinks(aLink){
     let w = $(aEle).width();
     let newOverLay = getNewElementOverlay({
       id: id,
-      content: 'Push this file to Mammoth'
+      content: 'File ➢ Mammoth'
     });
     let oEle = $('body').append(newOverLay);
     let oSelector = '#' + id;
@@ -127,9 +128,13 @@ function handleLists(listEle){
     knownElements.push(listEle);
     let p = $(listEle).offset();
     let w = $(listEle).width();
+    let totalItems = $(listEle).children().length;
+    if(totalItems <= 1){
+      return;
+    }
     let newOverLay = getNewElementOverlay({
       id: id,
-      content: 'Push this list to Mammoth'
+      content: totalItems + ' items ➢ Mammoth'
     });
     let oEle = $('body').append(newOverLay);
     let oSelector = '#' + id;
@@ -139,6 +144,15 @@ function handleLists(listEle){
       'z-index': 100 + knownElements.length
     });
     $(oSelector).on("click", getListPushHandler(id));
+    _fixPosition(oSelector);
+  }
+}
+
+function _fixPosition(ele){
+  let wd = $(window).width();
+  let el = $(ele).offset().left;
+  if(wd < el + 200){
+    $(ele).css({left: el - 200});
   }
 }
 
@@ -179,7 +193,7 @@ function handleTable(table){
     knownElements.push(table);
     let p = $(tblEle).offset();
     let w = $(tblEle).width();
-    let content = 'Push ~' + totalRows + ' rows to Mammoth';
+    let content = '' + totalRows + ' rows ➢ Mammoth';
     let newOverLay = getNewElementOverlay({
       id: id,
       content: content
@@ -192,6 +206,7 @@ function handleTable(table){
       'z-index': 100 + knownElements.length
     });
     $(oSelector).on("click", getTablePushHandler(id));
+    _fixPosition(oSelector);
   }
 }
 
@@ -368,14 +383,18 @@ function getCleanPageTitle() {
 
 function pushListToMammoth(listEle){
   let metadata = [{
-    'internal_name': 'item',
-    'display_name': "Items",
-    'type': 'TEXT'
+      'internal_name': 'sequence',
+      'display_name': "Sequence",
+      'type': 'NUMERIC'
+    },{
+      'internal_name': 'item',
+      'display_name': "Items",
+      'type': 'TEXT'
   }];
   let data = [];
   let items = $(listEle).find('li');
   $.each(items, function(i, item){
-    data.push({item: $(item).text().trim()})
+    data.push({sequence: i + 1, item: $(item).text().trim()});
   })
   console.log(data, metadata);
   addDataset(metadata, data, {
