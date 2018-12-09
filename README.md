@@ -73,6 +73,7 @@ ApiCall({ key: secrets.key });
 2. Refresh option
 3. spec
 4. framework
+5. Better control over navigation and tab switching.
 
 
 # Road Map
