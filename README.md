@@ -16,13 +16,10 @@
 8. Have fun.
 
 ## Structure
-All your extension's development code must be placed in `src` folder, including the extension manifest.
+- All the development is placed in `src` folder.
+- src/manifest.json is how we edit the manifest file of the chrome app.
 
-The boilerplate is already prepared to have a popup, a options page and a background page. You can easily customize this.
-
-Each page has its own [assets package defined](https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate/blob/master/webpack.config.js#L16-L20). So, to code on popup you must start your code on `src/js/popup.js`, for example.
-
-You must use the [ES6 modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) to a better code organization. The boilerplate is already prepared to that and [here you have a little example](https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate/blob/master/src/js/popup.js#L2-L4).
+Read more at https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate#structure
 
 ## Webpack auto-reload and HRM
 To make your workflow much more efficient this boilerplate uses the [webpack server](https://webpack.github.io/docs/webpack-dev-server.html) to development (started with `npm run server`) with auto reload feature that reloads the browser automatically every time that you save some file o your editor.
