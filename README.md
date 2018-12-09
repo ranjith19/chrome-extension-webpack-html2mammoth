@@ -96,7 +96,7 @@ Specifiers that could be allowed
 5. jquery selector
 6. xpath
 
-This will allow us to add custom html parsers anywhere on the web.
+This will allow us to add custom html parsers anywhere on the web. Also we should be able to define negative lists with this.
 
 We can then open it up to the community to contribute.
 
