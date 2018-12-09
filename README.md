@@ -16,7 +16,7 @@
 8. Have fun.
 
 ## Structure
-- All the development is placed in `src` folder.
+- All the development code is placed in `src` folder.
 - src/manifest.json is how we edit the manifest file of the chrome app.
 
 Read more at https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate#structure
