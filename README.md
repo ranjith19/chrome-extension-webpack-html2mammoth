@@ -83,7 +83,9 @@ ApiCall({ key: secrets.key });
 
 ###  Spec
 
-We need to define a flexible spec to specify custom html parsers.
+HTML is a flexible formats and everyone has done their own thing when making websites. So it is not possible to write generic code that can parse everything.
+
+Hence it is important that this extension is flexible. It should be possible to customise this extension by allowing custom specifiers, parsers, data generators etc.
 
 Specifiers that could be allowed
 
@@ -93,11 +95,14 @@ Specifiers that could be allowed
 4. other url parts like query string etc.
 5. jquery selector
 6. xpath
+7. custom parser
+8. Custom data generators.
 
-This will allow us to add custom html parsers anywhere on the web. Also we should be able to define negative lists with this.
+Also we should be able to define negative lists with this so this extension can be disbled easily where not needed.
 
-We can then open it up to the community to contribute.
+This will allow us to add custom html parsers anywhere on the web. 
 
+Once we have achieved the right spec, anyone in the world should be able to contribute and help us customise this tool
 
 ### Long term:
 
