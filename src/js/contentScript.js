@@ -15,7 +15,9 @@ let trackingURL = 'https://qa.mammoth.io/api/v1/webhook/data/LW5QcnJDzfS0';
 
 let selectorHandlerMap = {
   'table': handleTable,
-  "a[href*='.csv']": handleCsvLinks
+  "a[href*='.csv']": handleSupportedFileLinks,
+  "a[href*='.json']": handleSupportedFileLinks,
+  "a[href*='.xlsx']": handleSupportedFileLinks
 }
 
 _captureBrowserDetails();
@@ -67,10 +69,10 @@ function _findAllHtmlElements(){
 
 
 function getNewElementOverlay(id){
-  return '<div class="html-to-mammoth-push-button" id="'+ id + '"><span>Feed Mammoth</span></div>'
+  return '<div class="html-to-mammoth-push-button-2" id="'+ id + '"><span></span></div>'
 }
 
-function handleCsvLinks(aLink){
+function handleSupportedFileLinks(aLink){
   if(knownElements.indexOf(aLink) != -1){
     return;
   }
@@ -85,18 +87,19 @@ function handleCsvLinks(aLink){
     let oEle = $('body').append(newOverLay);
     let oSelector = '#' + id;
     $(oSelector).css({
-      top: p.top + 30,
-      left: p.left
+      top: p.top + 20,
+      left: p.left,
+      'z-index': 100 + knownElements.length
     });
-    $(oSelector).on("click", getCsvPushHandler(id));
+    $(oSelector).on("click", getFilePushHandler(id));
   }
 }
 
-function getCsvPushHandler(id){
+function getFilePushHandler(id){
   return function(){
     let aEle = _elementRegistry[id];
     $("#" + id).remove();
-    pushCsvLink(aEle);
+    pushFileLink(aEle);
   }
 }
 
@@ -108,14 +111,12 @@ function handleTable(table){
   let tblEle = $(table);
   if(tblEle){
     let headerCols = $(tblEle).find('th');
-    let rowElements = $(tblEle).find('tr');
+    let rowElements = $(tblEle).find('tbody');
 
-    if(!headerCols.length){
+    if(!(headerCols.length + rowElements.length)){
       return;
     }
-    if(!rowElements.length){
-      return;
-    }
+
     let id = ('mt_' + Math.random()).replace('.', '_');
     _elementRegistry[id] = table;
     knownElements.push(table);
@@ -126,7 +127,8 @@ function handleTable(table){
     let oSelector = '#' + id;
     $(oSelector).css({
       top: p.top,
-      left: p.left + w + 10
+      left: p.left + w - 40,
+      'z-index': 100 + knownElements.length
     });
     $(oSelector).on("click", getTablePushHandler(id));
   }
@@ -142,7 +144,7 @@ function getTablePushHandler(id){
 }
 
 
-function pushCsvLink(aEle){
+function pushFileLink(aEle){
   let linkToFile = $(aEle).prop('href');
   mammoth.uploadFileByCsvLink(linkToFile).then(_openApp);
   function _openApp(){
@@ -156,15 +158,8 @@ function pushTable(element){
   let data = [];
   let headers = [];
   let internalNames = {};
-  let headerRows = $($($(element)[0]).find('thead')).find('tr');
-  let lastHeader = headerRows[headerRows.length - 1];
-  let headerCols = $(lastHeader).find('th');
 
-  $.each(headerCols, function(i, e){
-    let headerText = $(e).text().trim();
-    if(headerText.length == 0){
-      headerText = 'Header';
-    }
+  function addHeader(headerText){
     let header = headerText;
     let index = 2;
     while(headers.indexOf(header) != -1){
@@ -172,8 +167,22 @@ function pushTable(element){
       index++;
     }
     headers.push(header);
-    internalNames[header] = 'header' + i;
-  });
+    internalNames[header] = 'header' + headers.length;
+  }
+
+  let headerRows = $($($(element)[0]).find('thead')).find('tr');
+  if (headerRows.length){
+    let lastHeader = headerRows[headerRows.length - 1];
+    let headerCols = $(lastHeader).find('th');
+    $.each(headerCols, function(i, e){
+      let headerText = $(e).text().trim();
+      if(headerText.length == 0){
+        headerText = 'Header';
+      }
+      addHeader(headerText);
+    });
+  }
+
   let types = {};
   let rowElements = $($($(element)[0])).find('tbody tr');
   $.each(rowElements, function(i, rele){
@@ -183,9 +192,12 @@ function pushTable(element){
       return true;
     }
     $.each(cellElements, function(j, ce){
+      if(j >= headers.length){
+        let hText = 'Header ' + (j + 1);
+        addHeader(hText);
+      }
       let h = headers[j];
       let iname = internalNames[h];
-
       let cd = _getCellData(ce);
       cd = cd.trim();
       if(cd == ""){
@@ -232,7 +244,10 @@ function pushTable(element){
     "runId": Math.random()
   };
   _logData("click", tableDetails);
-  _addDs();
+  if(data.length){
+      _addDs();
+  }
+
 
   function _addDs(){
     let pageTitle = document.title;
@@ -273,8 +288,6 @@ function pushTable(element){
 function _getCellData(element){
   return $(element).text();
 }
-
-
 
 function _captureBrowserDetails(){
   var nVer = navigator.appVersion;
@@ -391,17 +404,71 @@ function  addSheetAndRules(){
   	return style.sheet;
   })();
 
-  sheet.insertRule(""+
-    ".html-to-mammoth-push-button {"+
-        "width: 140px;"+
-        "height: 20px;"+
-        "background: rgb(86, 194, 140);"+
-        "position: absolute;"+
-        "cursor: pointer;"+
-        "color: rgb(0, 0, 0);"+
-        "border-color: rgb(86, 194, 140);"+
-        "text-align: center;"+
-        "padding: 3px;"+
-        "z-index: 100; }"
+  sheet.insertRule(`
+    .html-to-mammoth-push-button {
+      	width: 140px;
+      	height: 20px;
+      	background: rgb(86, 194, 140);
+      	position: absolute;
+      	cursor: pointer;
+      	color: rgb(0, 0, 0);
+      	border-color: rgb(86, 194, 140);
+      	text-align: center;
+      	padding: 3px;
+    }`);
+
+  sheet.insertRule(
+    `.html-to-mammoth-push-button-2 {
+      	background-color: rgb(86, 194, 140);
+      	border-bottom-left-radius: 3px;
+      	border-bottom-right-radius: 3px;
+      	border-top-left-radius: 3px;
+      	border-top-right-radius: 3px;
+      	color: rgb(255, 255, 255);
+      	cursor: pointer;
+      	display: inline-block;
+      	font-family: Arial!important;
+      	font-size: 12px;
+      	font-weight: 700;
+      	line-height: 14px;
+      	list-style-image: none;
+      	list-style-position: outside;
+      	list-style-type: none;
+      	padding-bottom: 2px;
+      	padding-left: 4px;
+      	padding-right: 4px;
+      	padding-top: 2px;
+        position: absolute;
+      	text-align: left;
+      	text-decoration-color: rgb(255, 255, 255);
+      	text-decoration-line: none;
+      	text-decoration-style: solid;
+      	text-shadow: rgba(0, 0, 0, 0.25) 0px -1px 0px;
+      	text-size-adjust: 100%;
+      	vertical-align: baseline;
+      	white-space: nowrap;
+        width: 30px;
+        height: 20px;
+        z-index: 100;
+    }`
   );
+  sheet.insertRule(`
+    .html-to-mammoth-push-button-2:hover {
+      z-index: 10000 !important;
+      border: 1px solid black;
+      width: 100px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+  `)
+  sheet.insertRule(`
+    .html-to-mammoth-push-button-2:after {
+      content: \"+M\";
+    }
+  `)
+  sheet.insertRule(`
+    .html-to-mammoth-push-button-2:hover:after {
+      content: \"Feed Mammoth\";
+    }
+  `)
 }
