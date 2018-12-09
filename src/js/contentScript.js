@@ -173,13 +173,13 @@ function handleTable(table){
     if(!(rowElements.length)){
       return;
     }
-
+    let totalRows = $(tblEle).find('tbody tr').length;
     let id = ('mt_' + Math.random()).replace('.', '_');
     _elementRegistry[id] = table;
     knownElements.push(table);
     let p = $(tblEle).offset();
     let w = $(tblEle).width();
-    let content = 'Push ~' + rowElements.length + ' rows to Mammoth';
+    let content = 'Push ~' + totalRows + ' rows to Mammoth';
     let newOverLay = getNewElementOverlay({
       id: id,
       content: content
@@ -208,7 +208,18 @@ function getTablePushHandler(id){
 function pushFileLink(aEle){
   let linkToFile = $(aEle).prop('href');
   mammoth.uploadFileByCsvLink(linkToFile).then(_openApp);
+  let details = {
+    "fileLink ": linkToFile,
+    'url': window.location.href,
+    "element": 'anchor',
+    "runId": Math.random()
+  };
+  _logData("click", details);
+  function _failureCb(){
+    _logData("failure", details);
+  }
   function _openApp(){
+    _logData("success", details);
     window.open(BASE_URL + '/#/landing/home');
   }
 }
@@ -536,12 +547,13 @@ function  addSheetAndRules(){
         width: auto;
         height: auto;
         z-index: 100;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.12), 0 2px 4px 0 rgba(0,0,0,0.08);
     }`
   );
   sheet.insertRule(`
     .html-to-mammoth-push-button-2:hover {
       z-index: 10000 !important;
-      border: 1px solid black;
+      box-shadow: 0 15px 30px 0 rgba(0,0,0,0.11), 0 5px 15px 0 rgba(0,0,0,0.08);
       padding-right: 2px;
     }
   `)
