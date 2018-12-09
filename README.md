@@ -67,29 +67,38 @@ ApiCall({ key: secrets.key });
 ```
 :point_right: The files with name `secrets.*.js` already are ignored on the repository.
 
+# TODO
+
+1. Better Design
+2. Refresh option
+3. spec
+4. framework
+
 
 # Road Map
 
-### Statement of Purpose
+### High Level Goals
 
-1. The purpose of this extension is to democratise the html parsing/scraping using Mammoth.
-2. Make JavaScript a language of data scientists.
-3. Build a community of contributors.
+1. Democratise the html parsing/scraping using Mammoth.
+2. Build a community of contributors.
+3. Make JavaScript a language of data scientists.
 
 ###  Spec
 
-Flexible spec to specify custom html parsers.
+We need to define a flexible spec to specify custom html parsers.
 
-Specifiers that should be allowed
+Specifiers that could be allowed
 
 1. Domain
 2. Sub domain
 3. url path
-4. other url parts
+4. other url parts like query string etc.
 5. jquery selector
 6. xpath
 
-This will allow us to add custom html parsers anywhere on the web. We can then open it up to the community to contribute.
+This will allow us to add custom html parsers anywhere on the web.
+
+We can then open it up to the community to contribute.
 
 
 ### Long term:
@@ -119,13 +128,6 @@ Questions:
 4. Make sure to commit in the same style that we are committing until now on the project.
 5. Help with documentation is also appreciated.
 
+# Acknowledgemets
 
-Thanks to for this template: https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate
-
-
-#TODO
-
-1. Better Design
-2. Refresh option
-3. spec
-4. framework
+1. used this boilerplate template: https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate
