@@ -6,14 +6,21 @@ const BASE_URL = 'https://eureka.mammoth.io';
 let inited = false;
 let mammoth = new Mammoth(BASE_URL + '/api/v1');
 let _mammothRegistry;
-let _tableRegistry = {};
-let knownTables = [];
+let _elementRegistry = {};
+let knownElements = [];
 let trackingInfo = {};
 let tableLength = {};
 let trackingURL = 'https://qa.mammoth.io/api/v1/webhook/data/LW5QcnJDzfS0';
 
+
+let selectorHandlerMap = {
+  'table': handleTable,
+  "a[href*='.csv']": handleCsvLinks
+}
+
 _captureBrowserDetails();
 init();
+addSheetAndRules();
 
 chrome.runtime.onMessage.addListener(
     function(message, sender, sendResponse) {
@@ -38,28 +45,64 @@ function init(){
 
 function _setTokenAccountCb(){
   // console.log(_mammothRegistry);
-  _findAllHtmlTables();
-  setInterval(_findAllHtmlTables, 5000);
+  _findAllHtmlElements();
+  setInterval(_findAllHtmlElements, 5000);
 }
 
-function _findAllHtmlTables(){
-  let tables = $('table');
-  $.each(tables, function(i, table){
-    handleTable(table)
+function _findAllHtmlElements(){
+  let totalElements = {};
+  _.forEach(selectorHandlerMap, function(handler, selector){
+    let matchingElements = $(selector);
+    totalElements[selector] = matchingElements.length;
+    $.each(matchingElements, function(i, mEle){
+      handler(mEle)
+    });
   });
+
   if(!inited){
-      _logData("init", {"tables": tables.length});
+      _logData("init", totalElements);
   }
   inited = true;
 }
 
 
-function getNewTableOverlay(id){
-  return '<div id="'+ id + '"><span>Feed Mammoth</span></div>'
+function getNewElementOverlay(id){
+  return '<div class="html-to-mammoth-push-button" id="'+ id + '"><span>Feed Mammoth</span></div>'
 }
 
+function handleCsvLinks(aLink){
+  if(knownElements.indexOf(aLink) != -1){
+    return;
+  }
+  let aEle = $(aLink);
+  if(aEle){
+    let id = ('a_ele_' + Math.random()).replace('.', '_');
+    _elementRegistry[id] = aEle;
+    knownElements.push(aLink);
+    let p = $(aEle).offset();
+    let w = $(aEle).width();
+    let newOverLay = getNewElementOverlay(id);
+    let oEle = $('body').append(newOverLay);
+    let oSelector = '#' + id;
+    $(oSelector).css({
+      top: p.top + 30,
+      left: p.left
+    });
+    $(oSelector).on("click", getCsvPushHandler(id));
+  }
+}
+
+function getCsvPushHandler(id){
+  return function(){
+    let aEle = _elementRegistry[id];
+    $("#" + id).remove();
+    pushCsvLink(aEle);
+  }
+}
+
+
 function handleTable(table){
-  if(knownTables.indexOf(table) != -1){
+  if(knownElements.indexOf(table) != -1){
     return;
   }
   let tblEle = $(table);
@@ -74,43 +117,39 @@ function handleTable(table){
       return;
     }
     let id = ('mt_' + Math.random()).replace('.', '_');
-    _tableRegistry[id] = table;
-    knownTables.push(table);
+    _elementRegistry[id] = table;
+    knownElements.push(table);
     let p = $(tblEle).offset();
     let w = $(tblEle).width();
-    let newOverLay = getNewTableOverlay(id);
+    let newOverLay = getNewElementOverlay(id);
     let oEle = $('body').append(newOverLay);
     let oSelector = '#' + id;
     $(oSelector).css({
       top: p.top,
-      left: p.left + w + 10,
-      boder: '1px solid yellow',
-      width: 140,
-      height: 30,
-      background: '#56c28c',
-      position: 'absolute',
-      cursor: 'pointer',
-      'color': '#000',
-      'background-color': '#56c28c',
-      'border-color': '#56c28c',
-      'text-align': 'center',
-      'vertical-align': 'center',
-      'borer-radius': '5px',
-      'padding': '5px',
-      'z-index': 100
+      left: p.left + w + 10
     });
-    $(oSelector).on("click", getPushHandler(id));
+    $(oSelector).on("click", getTablePushHandler(id));
   }
 }
 
 
-function getPushHandler(id){
+function getTablePushHandler(id){
   return function(){
-    let table = _tableRegistry[id];
+    let table = _elementRegistry[id];
     $("#" + id).remove();
     pushTable(table);
   }
 }
+
+
+function pushCsvLink(aEle){
+  let linkToFile = $(aEle).prop('href');
+  mammoth.uploadFileByCsvLink(linkToFile).then(_openApp);
+  function _openApp(){
+    window.open(BASE_URL + '/#/landing/home');
+  }
+}
+
 
 function pushTable(element){
   mammoth.resources.startPolling();
@@ -137,9 +176,9 @@ function pushTable(element){
   });
   let types = {};
   let rowElements = $($($(element)[0])).find('tbody tr');
-  $.each(rowElements, function(i, re){
+  $.each(rowElements, function(i, rele){
     let row = {};
-    let cellElements = $(re).find('td');
+    let cellElements = $(rele).children();
     if(cellElements.length == 0){
       return true;
     }
@@ -189,7 +228,8 @@ function pushTable(element){
     "rows ": data.length,
     "columns ": metadata.length,
     'url': window.location.href,
-    "selector": $(element).selector
+    "selector": $(element).selector,
+    "runId": Math.random()
   };
   _logData("click", tableDetails);
   _addDs();
@@ -221,7 +261,7 @@ function pushTable(element){
   function _listWsCb(list){
     if(list.length){
       _logData("success", tableDetails);
-      window.open(BASE_URL + '#workspaces/' + list[0].id);
+      window.open(BASE_URL + '/#workspaces/' + list[0].id);
       mammoth.resources.stopPolling();
     }
     else{
@@ -330,4 +370,38 @@ function _logData(event, properties){
     data: JSON.stringify(data)
   });
   console.log(data);
+}
+
+
+function  addSheetAndRules(){
+  var sheet = (function() {
+	// Create the <style> tag
+  	var style = document.createElement("style");
+
+  	// Add a media (and/or media query) here if you'd like!
+  	// style.setAttribute("media", "screen")
+  	// style.setAttribute("media", "only screen and (max-width : 1024px)")
+
+  	// WebKit hack :(
+  	style.appendChild(document.createTextNode(""));
+
+  	// Add the <style> element to the page
+  	document.head.appendChild(style);
+
+  	return style.sheet;
+  })();
+
+  sheet.insertRule(""+
+    ".html-to-mammoth-push-button {"+
+        "width: 140px;"+
+        "height: 20px;"+
+        "background: rgb(86, 194, 140);"+
+        "position: absolute;"+
+        "cursor: pointer;"+
+        "color: rgb(0, 0, 0);"+
+        "border-color: rgb(86, 194, 140);"+
+        "text-align: center;"+
+        "padding: 3px;"+
+        "z-index: 100; }"
+  );
 }
