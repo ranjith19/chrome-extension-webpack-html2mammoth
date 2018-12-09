@@ -12,7 +12,7 @@
     "128": "icon-128.png"
   },
   "permissions": [
-    "*://*.mammoth.io/*",
+    "https://eureka.mammoth.io/*",
     "storage",
     "activeTab"
   ],
