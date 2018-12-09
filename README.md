@@ -16,13 +16,10 @@
 8. Have fun.
 
 ## Structure
-All your extension's development code must be placed in `src` folder, including the extension manifest.
+- All the development code is placed in `src` folder.
+- src/manifest.json is how we edit the manifest file of the chrome app.
 
-The boilerplate is already prepared to have a popup, a options page and a background page. You can easily customize this.
-
-Each page has its own [assets package defined](https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate/blob/master/webpack.config.js#L16-L20). So, to code on popup you must start your code on `src/js/popup.js`, for example.
-
-You must use the [ES6 modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) to a better code organization. The boilerplate is already prepared to that and [here you have a little example](https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate/blob/master/src/js/popup.js#L2-L4).
+Read more at https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate#structure
 
 ## Webpack auto-reload and HRM
 To make your workflow much more efficient this boilerplate uses the [webpack server](https://webpack.github.io/docs/webpack-dev-server.html) to development (started with `npm run server`) with auto reload feature that reloads the browser automatically every time that you save some file o your editor.
@@ -73,6 +70,7 @@ ApiCall({ key: secrets.key });
 2. Refresh option
 3. spec
 4. framework
+5. Better control over navigation and tab switching.
 
 
 # Road Map
@@ -85,7 +83,9 @@ ApiCall({ key: secrets.key });
 
 ###  Spec
 
-We need to define a flexible spec to specify custom html parsers.
+HTML is a flexible formats and everyone has done their own thing when making websites. So it is not possible to write generic code that can parse everything.
+
+Hence it is important that this extension is flexible. It should be possible to customise this extension by allowing custom specifiers, parsers, data generators etc.
 
 Specifiers that could be allowed
 
@@ -95,11 +95,14 @@ Specifiers that could be allowed
 4. other url parts like query string etc.
 5. jquery selector
 6. xpath
+7. custom parser
+8. Custom data generators.
 
-This will allow us to add custom html parsers anywhere on the web. Also we should be able to define negative lists with this.
+Also we should be able to define negative lists with this so this extension can be disbled easily where not needed.
 
-We can then open it up to the community to contribute.
+This will allow us to add custom html parsers anywhere on the web. 
 
+Once we have achieved the right spec, anyone in the world should be able to contribute and help us customise this tool
 
 ### Long term:
 
