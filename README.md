@@ -111,17 +111,6 @@ Once we have achieved the right spec, anyone in the world should be able to cont
 3. User should be able to download a script from someone else.
 
 
-### Other Technology Considerations
-
-Questions:
-
-1. Decide if we need to go with react or just jquery etc are sufficient
-2. Design, add tests.
-3. Typescript or vanilla JS?
-4. Define coding standards and follow them?
-5. CI/CD?
-
-
 
 ## Contributing 
 
