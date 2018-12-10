@@ -125,7 +125,7 @@ Questions:
 
 ## Contributing 
 
-1. Create an issue, it's a good place to start. 
+1. Create an [issue](https://github.com/ranjith19/chrome-extension-webpack-html2mammoth/issues), it's a good place to start.
 1. **Create PR if you can solve any of the reported issues.**
 2. On your PR make sure that you are following the current codebase style.
 3. Your PR must be single purpose. Resolve just one problem on your PR.
