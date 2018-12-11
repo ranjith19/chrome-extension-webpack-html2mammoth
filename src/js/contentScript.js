@@ -540,7 +540,7 @@ function  addSheetAndRules(){
 
   sheet.insertRule(
     `.html-to-mammoth-push-button-2 {
-      	background-color: rgb(86, 194, 140);
+      	background-color: rgb(86, 0, 140); //rgb(86, 194, 140);
       	border-radius: 3px;
       	color: #fff;
       	cursor: pointer;
