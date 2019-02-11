@@ -4,7 +4,7 @@ import Mammoth from 'mammoth-data-library';
 import $ from "jquery";
 import _ from "lodash";
 
-const BASE_URL = 'https://eureka.mammoth.io';
+const BASE_URL = 'https://app.mammoth.io';
 let mammoth = new Mammoth(BASE_URL + '/api/v1');
 let _mammothRegistry = {accounts: null};
 
